@@ -25,7 +25,6 @@
     "update": "complete-cli update"
   },
   "dependencies": {
-    "@paddlejs-models/ocr": "^1.2.4",
     "complete-common": "2.4.0",
     "complete-node": "7.4.0",
     "jimp": "^1.6.0",

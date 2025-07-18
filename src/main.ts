@@ -11,6 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
 import { LETTER_POINTS } from "./letterPoints.js";
+import { RUN_CONSTANTS } from "./runConstants.js";
 
 interface Coordinate {
   x: number;
@@ -20,17 +21,6 @@ interface Coordinate {
 const WORD_PLAY_EXE_NAME = "Word Play.exe";
 const IMAGES_DIR_NAME = "images";
 const DICTIONARY_PATH = String.raw`D:\Games\PC\Word Play\1.04\ExportedProject\Assets\Resources\wordsfull.txt`;
-
-const RUN_CONSTANTS = {
-  extraTile1: false as boolean,
-  extraTile2: false as boolean,
-  extraTile3: false as boolean,
-  fiveTilesFirstAndLast3x: false as boolean,
-  ifFirstLetterEqualsLastLetter: true as boolean,
-  ifSameLettersTogether: false as boolean,
-  ifWordBeginsWithH: false as boolean,
-  longWordBooster: false as boolean,
-} as const;
 
 await main();
 
