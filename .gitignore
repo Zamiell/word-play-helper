@@ -6,6 +6,10 @@
 .DS_Store
 thumbs.db
 
+# Script output
+output.txt
+images
+
 # ------------------------------
 # GitHub Node.gitignore template
 # https://raw.githubusercontent.com/github/gitignore/master/Node.gitignore
