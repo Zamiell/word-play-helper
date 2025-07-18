@@ -3,23 +3,16 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/workflows/setup
-      - run: npm run build
-
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/workflows/setup
-      - run: npm run lint
+      - run: bun run lint
 
   discord:
     name: Discord Failure Notification
-    needs: [build, lint]
+    needs: [lint]
     if: failure()
     runs-on: ubuntu-latest
     steps:
