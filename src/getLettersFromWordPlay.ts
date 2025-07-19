@@ -11,16 +11,16 @@ interface Coordinate {
   y: number;
 }
 
+export type CoordinatesWithLetters = ReadonlyArray<{
+  coordinate: Coordinate;
+  letters: readonly string[];
+}>;
+
 const WORD_PLAY_EXE_NAME = "Word Play.exe";
 const IMAGES_DIR_NAME = "images";
 
 /** @returns Array of uppercase letters. */
-export async function getLettersFromWordPlay(): Promise<
-  ReadonlyArray<{
-    coordinate: Coordinate;
-    letters: readonly string[];
-  }>
-> {
+export async function getLettersFromWordPlay(): Promise<CoordinatesWithLetters> {
   const geminiAPIKey = process.env["GEMINI_API_KEY"];
   if (geminiAPIKey === undefined || geminiAPIKey === "") {
     throw new Error("Failed to read the environment variable: GEMINI_API_KEY");

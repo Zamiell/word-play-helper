@@ -1,5 +1,6 @@
 import { getElapsedSeconds } from "complete-common";
 import { readFileAsync } from "complete-node";
+import type { CoordinatesWithLetters } from "./getLettersFromWordPlay.js";
 import { getLettersFromWordPlay } from "./getLettersFromWordPlay.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 import { getWordScore, hasRepeatingLetters } from "./score.js";
@@ -21,17 +22,11 @@ async function main() {
     }
   }
 
-  const availableLetters = coordinatesWithLetters.flatMap(
-    (coordinateWithLetters) => coordinateWithLetters.letters,
-  );
-
-  const possibleWords = await getPossibleWords(availableLetters);
+  const possibleWords = await getPossibleWords(coordinatesWithLetters);
   printSortedWords(possibleWords);
 }
 
-function printGrid(
-  coordinatesWithLetters: Awaited<ReturnType<typeof getLettersFromWordPlay>>,
-) {
+function printGrid(coordinatesWithLetters: CoordinatesWithLetters) {
   // Get the maximum bounds of the grid.
   let minX = Infinity;
   let maxX = -Infinity;
@@ -69,10 +64,14 @@ function printGrid(
 }
 
 async function getPossibleWords(
-  unknownCaseLetters: readonly string[],
+  coordinatesWithLetters: CoordinatesWithLetters,
 ): Promise<readonly string[]> {
+  const availableLettersArray = coordinatesWithLetters.flatMap(
+    (coordinateWithLetters) => coordinateWithLetters.letters,
+  );
+
   // Make a map of available letters.
-  const letters = unknownCaseLetters.map((letter) => letter.toLowerCase());
+  const letters = availableLettersArray.map((letter) => letter.toLowerCase());
   const availableLetters = new Map<string, number>();
   for (const letter of letters) {
     availableLetters.set(letter, (availableLetters.get(letter) ?? 0) + 1);
