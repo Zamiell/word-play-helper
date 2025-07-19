@@ -22,7 +22,12 @@ async function main() {
     }
   }
 
-  const possibleWords = await getPossibleWords(coordinatesWithLetters);
+  const availableLetters = coordinatesWithLetters.flatMap(
+    (coordinateWithLetters) => coordinateWithLetters.letters,
+  );
+  console.log("availableLetters:", availableLetters);
+
+  const possibleWords = await getPossibleWords(availableLetters);
   printSortedWords(possibleWords);
 }
 
@@ -64,14 +69,10 @@ function printGrid(coordinatesWithLetters: CoordinatesWithLetters) {
 }
 
 async function getPossibleWords(
-  coordinatesWithLetters: CoordinatesWithLetters,
+  unknownCaseLetters: readonly string[],
 ): Promise<readonly string[]> {
-  const availableLettersArray = coordinatesWithLetters.flatMap(
-    (coordinateWithLetters) => coordinateWithLetters.letters,
-  );
-
   // Make a map of available letters.
-  const letters = availableLettersArray.map((letter) => letter.toLowerCase());
+  const letters = unknownCaseLetters.map((letter) => letter.toLowerCase());
   const availableLetters = new Map<string, number>();
   for (const letter of letters) {
     availableLetters.set(letter, (availableLetters.get(letter) ?? 0) + 1);
