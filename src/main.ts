@@ -1,255 +1,97 @@
-import {
-  assertDefined,
-  assertNotNull,
-  getElapsedSeconds,
-  sumArray,
-} from "complete-common";
-import { makeDirectoryAsync, readFileAsync } from "complete-node";
-import { Jimp } from "jimp";
-import { Window } from "node-screenshots";
-import fs from "node:fs/promises";
-import path from "node:path";
-import OpenAI from "openai";
-import { LETTER_POINTS } from "./letterPoints.js";
+import { getElapsedSeconds } from "complete-common";
+import { readFileAsync } from "complete-node";
+import { getLettersFromWordPlay } from "./getLettersFromWordPlay.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
+import { getWordScore, hasRepeatingLetters } from "./score.js";
 
-interface Coordinate {
-  x: number;
-  y: number;
-}
-
-const WORD_PLAY_EXE_NAME = "Word Play.exe";
-const IMAGES_DIR_NAME = "images";
 const DICTIONARY_PATH = String.raw`D:\Games\PC\Word Play\1.04\ExportedProject\Assets\Resources\wordsfull.txt`;
 
 await main();
 
 async function main() {
   const startTime = Date.now();
-  const uppercaseLetters = await getLettersFromWordPlay();
+  const coordinatesWithLetters = await getLettersFromWordPlay();
   const elapsedSeconds = getElapsedSeconds(startTime);
   console.log(`(${elapsedSeconds}s)`);
-  console.log(uppercaseLetters);
+  printGrid(coordinatesWithLetters);
 
-  const possibleWords = await getPossibleWords(uppercaseLetters);
+  for (const [key, value] of Object.entries(RUN_CONSTANTS.specialRounds)) {
+    if (value !== undefined && value !== false) {
+      console.log(`SPECIAL ROUND: ${key}`);
+    }
+  }
+
+  const availableLetters = coordinatesWithLetters.flatMap(
+    (coordinateWithLetters) => coordinateWithLetters.letters,
+  );
+
+  const possibleWords = await getPossibleWords(availableLetters);
   printSortedWords(possibleWords);
 }
 
-/** @returns Array of uppercase letters. */
-async function getLettersFromWordPlay(): Promise<readonly string[]> {
-  const openAIKey = process.env["OPENAI_API_KEY"];
-  if (openAIKey === undefined || openAIKey === "") {
-    throw new Error("Failed to read the environment variable: OPENAI_API_KEY");
+function printGrid(
+  coordinatesWithLetters: Awaited<ReturnType<typeof getLettersFromWordPlay>>,
+) {
+  // Get the maximum bounds of the grid.
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const { coordinate } of coordinatesWithLetters) {
+    minX = Math.min(minX, coordinate.x);
+    maxX = Math.max(maxX, coordinate.x);
+    minY = Math.min(minY, coordinate.y);
+    maxY = Math.max(maxY, coordinate.y);
   }
 
-  const openAI = new OpenAI({
-    apiKey: openAIKey,
-  });
-
-  const wordPlayWindow = getWordPlayWindow();
-  const capturedImage = await wordPlayWindow.captureImage();
-  const imageBuffer = await capturedImage.toJpeg();
-
-  const gapX = 155;
-  const gapY = 155;
-  const startX = 661 - gapX;
-  const startY = 382;
-  const boxWidth = 133;
-  const boxHeight = 133;
-
-  await makeDirectoryAsync(IMAGES_DIR_NAME);
-
-  const coordinates = getValidSquareCoordinates();
-
-  const lettersAndUndefined = await Promise.all(
-    coordinates.map(async (coordinate) => {
-      const { x: xCoordinate, y: yCoordinate } = coordinate;
-      const x = startX + xCoordinate * gapX;
-      const y = startY + yCoordinate * gapY;
-
-      const image = await Jimp.read(imageBuffer);
-
-      // Crop it to the size of the letter box.
-      image.crop({
-        x,
-        y,
-        w: boxWidth,
-        h: boxHeight,
-      });
-
-      // Now, crop it again so that we only have the letter (without the point score).
-      const scaleFactor = Math.sqrt(0.55); // 55%
-      const newSize = Math.floor(boxWidth * scaleFactor);
-      const offset = Math.floor((boxWidth - newSize) / 2);
-      image.crop({
-        x: offset,
-        y: offset,
-        w: newSize,
-        h: newSize,
-      });
-
-      const imagePath = path.join(
-        IMAGES_DIR_NAME,
-        `${yCoordinate}-${xCoordinate}.jpg`,
-      );
-
-      await image.write(imagePath as never);
-
-      return await getLettersFromImage(
-        imagePath,
-        openAI,
-        xCoordinate,
-        yCoordinate,
-      );
-    }),
-  );
-
-  const letters = lettersAndUndefined
-    .filter((letter) => letter !== undefined)
-    .flat();
-
-  return letters;
-}
-
-function getWordPlayWindow(): Window {
-  const windows = Window.all();
-
-  const wordPlayWindows = windows.filter(
-    (window) => window.appName === WORD_PLAY_EXE_NAME,
-  );
-  const wordPlayWindow = wordPlayWindows[0];
-
-  if (wordPlayWindow === undefined) {
-    throw new Error(
-      `Failed to find a window corresponding to: ${WORD_PLAY_EXE_NAME}`,
-    );
+  // Create a map for quick lookup.
+  const gridMap = new Map<string, string>();
+  for (const { coordinate, letters } of coordinatesWithLetters) {
+    gridMap.set(`${coordinate.x},${coordinate.y}`, letters.join(""));
   }
 
-  if (wordPlayWindows.length !== 1) {
-    throw new Error(
-      `More than one window corresponding to: ${WORD_PLAY_EXE_NAME}`,
-    );
-  }
-
-  return wordPlayWindow;
-}
-
-function getValidSquareCoordinates(): readonly Coordinate[] {
-  const coordinates: Coordinate[] = [];
-
-  for (let y = 0; y < 4; y++) {
-    for (let x = 0; x < 5; x++) {
-      if (
-        // Conditionally skip the extra tile squares.
-        (x === 0 && y === 0 && !RUN_CONSTANTS.extraTile1)
-        || (x === 0 && y === 1 && !RUN_CONSTANTS.extraTile2)
-        || (x === 0 && y === 2 && !RUN_CONSTANTS.extraTile3)
-        // Always skip the shuffle square.
-        || (x === 0 && y === 3)
-      ) {
-        continue;
+  // Build and output the grid.
+  console.log();
+  for (let y = minY; y <= maxY; y++) {
+    let row = "";
+    for (let x = minX; x <= maxX; x++) {
+      const letters = gridMap.get(`${x},${y}`);
+      // eslint-disable-next-line unicorn/prefer-ternary
+      if (letters !== undefined && letters !== "") {
+        row += `${letters} `;
+      } else {
+        row += "  "; // Two spaces for empty coordinate
       }
-
-      coordinates.push({ x, y });
     }
+    console.log(row.trimEnd());
   }
-
-  return coordinates;
-}
-
-/** @returns Array of lowercase letters. */
-async function getLettersFromImage(
-  imagePath: string,
-  openAI: OpenAI,
-  x: number,
-  y: number,
-): Promise<readonly string[] | undefined> {
-  const base64Image = await fs.readFile(imagePath, {
-    encoding: "base64",
-  });
-
-  const response = await openAI.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Tell me what letter or letters appear in the following image. If you cannot detect any letters, respond with an underscore.",
-          },
-          {
-            type: "image_url",
-            image_url: { url: `data:image/png;base64,${base64Image}` },
-          },
-        ],
-      },
-    ],
-  });
-
-  const choice = response.choices[0];
-  assertDefined(
-    choice,
-    `Failed to get the result from OpenAI for square number: (${y}, ${x})`,
-  );
-  const { content } = choice.message;
-  assertNotNull(
-    content,
-    `Failed to get the message content for square number: (${y}, ${x})`,
-  );
-
-  let letters = content.replaceAll(" ", "").toLowerCase();
-
-  if (letters === "") {
-    throw new Error(
-      `Got an empty response from the API for square number: (${y}, ${x})`,
-    );
-  }
-
-  if (letters === "_") {
-    return undefined;
-  }
-
-  if (letters === "+") {
-    // The API will sometimes turn "*" into "+" (for some reason).
-    letters = "*";
-  }
-
-  if (letters.length === 2 && letters !== "qu") {
-    throw new Error(
-      `Got an unknown 2 letter sequence for square number: (${y}, ${x}) - ${letters}`,
-    );
-  }
-
-  if (letters.length === 3 && letters !== "ing") {
-    throw new Error(
-      `Got an unknown 3 letter sequence for square number: (${y}, ${x}) - ${letters}`,
-    );
-  }
-
-  if (letters.length > 3) {
-    if (letters.startsWith("qu")) {
-      // The API will sometimes turn "qu" into "quit" and other random words (for some reason).
-      letters = "qu";
-    } else {
-      throw new Error(
-        `Got an unknown response from the API for square number: (${y}, ${x}) - ${letters}`,
-      );
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-misused-spread
-  return [...letters];
+  console.log();
 }
 
 async function getPossibleWords(
-  uppercaseLetters: readonly string[],
+  unknownCaseLetters: readonly string[],
 ): Promise<readonly string[]> {
   // Make a map of available letters.
-  const letters = uppercaseLetters.map((letter) => letter.toLowerCase());
+  const letters = unknownCaseLetters.map((letter) => letter.toLowerCase());
   const availableLetters = new Map<string, number>();
   for (const letter of letters) {
     availableLetters.set(letter, (availableLetters.get(letter) ?? 0) + 1);
+  }
+
+  // Notifications
+  if (RUN_CONSTANTS.has2OrMore !== undefined) {
+    for (const [letter, count] of availableLetters) {
+      if (letter === RUN_CONSTANTS.has2OrMore && count >= 2) {
+        console.log(`(2+ "${letter}" detected)`);
+      }
+    }
+  }
+  if (RUN_CONSTANTS.threeXSameLetter) {
+    for (const [letter, count] of availableLetters) {
+      if (count >= 3) {
+        console.log(`(3+ "${letter}" detected)`);
+      }
+    }
   }
 
   // Given the letters that we have, print out a list of all of the valid words we can make,
@@ -257,16 +99,45 @@ async function getPossibleWords(
   const wordsFile = await readFileAsync(DICTIONARY_PATH);
   const words = wordsFile.split("\n");
 
-  return words.filter(
+  const possibleWords = words.filter(
     (word) => word !== "" && canMakeWordWithLetters(word, availableLetters),
   );
+
+  // Notifications
+  if (RUN_CONSTANTS.containsSequence !== undefined) {
+    const letterSequence = RUN_CONSTANTS.containsSequence;
+    if (
+      possibleWords.some((word) => word.toLowerCase().includes(letterSequence))
+    ) {
+      console.log(`(words that contain "${letterSequence}" detected)`);
+    }
+  }
+  if (RUN_CONSTANTS.startsWith !== undefined) {
+    const prefix = RUN_CONSTANTS.startsWith;
+    if (possibleWords.some((word) => word.toLowerCase().startsWith(prefix))) {
+      console.log(`(words that start with "${prefix}" detected)`);
+    }
+  }
+
+  return possibleWords;
 }
 
 function canMakeWordWithLetters(
   word: string,
-  availableLetters: ReadonlyMap<string, number>,
+  availableLettersReadonly: ReadonlyMap<string, number>,
 ): boolean {
+  const availableLetters = new Map(availableLettersReadonly);
+
   let wildcardsAvailable = availableLetters.get("*") ?? 0;
+
+  if (RUN_CONSTANTS.specialRounds.firstTileIsLocked !== undefined) {
+    const value =
+      availableLetters.get(RUN_CONSTANTS.specialRounds.firstTileIsLocked) ?? 0;
+    availableLetters.set(
+      RUN_CONSTANTS.specialRounds.firstTileIsLocked,
+      value + 1,
+    );
+  }
 
   const wordLetterCount = new Map<string, number>();
 
@@ -286,6 +157,13 @@ function canMakeWordWithLetters(
     }
   }
 
+  if (
+    RUN_CONSTANTS.specialRounds.firstTileIsLocked !== undefined
+    && RUN_CONSTANTS.specialRounds.firstTileIsLocked !== word[0]?.toLowerCase()
+  ) {
+    return false;
+  }
+
   return true;
 }
 
@@ -293,147 +171,39 @@ function printSortedWords(words: readonly string[]) {
   // Word Play only accepts words of length 4 or longer.
   const bigWords = words.filter((word) => word.length >= 4);
 
+  if (bigWords.length === 0) {
+    console.log("No found combinations found!");
+    return;
+  }
+
   const wordsAndScores = bigWords.map((word) => ({
     word,
     score: getWordScore(word),
   }));
 
-  const sorted = wordsAndScores.sort((a, b) => b.score - a.score);
+  const sorted = wordsAndScores.sort(
+    (a, b) => b.score.wordScore - a.score.wordScore,
+  );
   const wordLengths = words.map((word) => word.length);
   const maxWordLength = Math.max(...wordLengths);
 
   for (const { word, score } of sorted) {
     const paddedWord = word.padEnd(maxWordLength);
-    console.log(`- ${paddedWord} - ${score}`);
+    const suffix = getPrintSuffix(word);
+    console.log(
+      `- ${paddedWord} - ${score.wordScore} (${word.length}) [${score.letterScores}] ${score.wordScorePreMultiplier}x${score.wordMultiplier}${suffix}`,
+    );
   }
 }
 
-function getWordScore(word: string): number {
+function getPrintSuffix(word: string) {
+  let suffix = "";
+
   const repeatingLetters = hasRepeatingLetters(word);
 
-  // eslint-disable-next-line @typescript-eslint/no-misused-spread
-  const letters = [...word];
-  const lowercaseLetters = letters.map((letter) => letter.toLowerCase());
-
-  const pointsArray = lowercaseLetters.map((letter, i) => {
-    const points = LETTER_POINTS.get(letter);
-
-    if (points === undefined || points === 0) {
-      throw new Error(`Failed to get the points for letter: ${letter}`);
-    }
-
-    let multiplier = 1;
-    if (
-      RUN_CONSTANTS.fiveTilesFirstAndLast3x
-      && word.length === 5
-      && (i === 0 || i === 4)
-    ) {
-      multiplier *= 3;
-    }
-
-    return points * multiplier;
-  });
-
-  let points = sumArray(pointsArray);
-  const longWordMultiplier = RUN_CONSTANTS.longWordBooster ? 2 : 1;
-  if (word.length >= 5) {
-    points += 5 * longWordMultiplier;
-  }
-  if (word.length >= 6) {
-    points += 5 * longWordMultiplier;
-  }
-  if (word.length >= 7) {
-    points += 5 * longWordMultiplier;
-  }
-  if (word.length >= 8) {
-    points += 10 * longWordMultiplier;
-  }
-  if (word.length >= 9) {
-    points += 10 * longWordMultiplier;
-  }
-  if (word.length >= 10) {
-    points += 15 * longWordMultiplier;
-  }
-  if (word.length >= 11) {
-    points += 15 * longWordMultiplier;
-  }
-  if (word.length >= 12) {
-    points += 20 * longWordMultiplier;
-  }
-  if (word.length >= 13) {
-    points += 20 * longWordMultiplier;
-  }
-  if (word.length >= 14) {
-    points += 20 * longWordMultiplier;
-  }
-  if (word.length >= 15) {
-    points += 25 * longWordMultiplier;
-  }
-  if (word.length >= 16) {
-    points += 25 * longWordMultiplier;
-  }
-  if (word.length >= 17) {
-    points += 25 * longWordMultiplier;
-  }
-  if (word.length >= 18) {
-    points += 30 * longWordMultiplier;
-  }
-  if (word.length >= 19) {
-    points += 40 * longWordMultiplier;
-  }
-  if (word.length >= 20) {
-    points += 50 * longWordMultiplier;
-  }
-  if (RUN_CONSTANTS.ifWordBeginsWithH) {
-    points += 20;
+  if (repeatingLetters) {
+    suffix = " - letter pair";
   }
 
-  let multiplier = 1;
-  if (
-    RUN_CONSTANTS.ifFirstLetterEqualsLastLetter
-    && word.at(0) === word.at(-1)
-  ) {
-    multiplier *= 2;
-  }
-
-  if (RUN_CONSTANTS.ifSameLettersTogether && repeatingLetters) {
-    multiplier *= 1.5;
-  }
-
-  return points * multiplier;
+  return suffix;
 }
-
-function hasRepeatingLetters(word: string): boolean {
-  for (let i = 0; i < word.length - 1; i++) {
-    const currentLetter = word[i];
-    const nextLetter = word[i + 1];
-
-    if (currentLetter === nextLetter) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/*
-function drawRectangleBorder(
-  image: Awaited<ReturnType<typeof Jimp.read>>,
-  startX: number,
-  startY: number,
-  width: number,
-  height: number,
-) {
-  const color = 0xff_00_00_ff;
-  const endX = startX + width;
-  const endY = startY + height;
-
-  for (let x = startX; x < endX; x++) {
-    for (let y = startY; y < endY; y++) {
-      if (x === startX || x === endX - 1 || y === startY || y === endY - 1) {
-        image.setPixelColor(color, x, y);
-      }
-    }
-  }
-}
-*/

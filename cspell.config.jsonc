@@ -24,5 +24,13 @@
     "output.txt",
     // @template-customization-end
   ],
-  "words": ["dbaeumer", "esbenp", "sarisia", "wordsfull", "Zamiell"],
+  "words": [
+    "AIAPI",
+    "dbaeumer",
+    "esbenp",
+    "genai",
+    "sarisia",
+    "wordsfull",
+    "Zamiell",
+  ],
 }

@@ -25,11 +25,11 @@
     "update": "complete-cli update"
   },
   "dependencies": {
+    "@google/genai": "^1.10.0",
     "complete-common": "2.4.0",
     "complete-node": "7.4.0",
     "jimp": "^1.6.0",
-    "node-screenshots": "^0.2.1",
-    "openai": "5.10.1"
+    "node-screenshots": "^0.2.1"
   },
   "devDependencies": {
     "complete-cli": "1.2.2",
