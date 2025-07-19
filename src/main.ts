@@ -1,6 +1,6 @@
 import { getElapsedSeconds } from "complete-common";
 import { readFileAsync } from "complete-node";
-import type { CoordinatesWithLetters } from "./getLettersFromWordPlay.js";
+import type { CoordinateWithLetters } from "./getLettersFromWordPlay.js";
 import { getLettersFromWordPlay } from "./getLettersFromWordPlay.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 import { getWordScore, hasRepeatingLetters } from "./score.js";
@@ -22,16 +22,15 @@ async function main() {
     }
   }
 
-  const availableLetters = coordinatesWithLetters.flatMap(
+  const availableLetters = coordinatesWithLetters.map(
     (coordinateWithLetters) => coordinateWithLetters.letters,
   );
-  console.log("availableLetters:", availableLetters);
 
   const possibleWords = await getPossibleWords(availableLetters);
   printSortedWords(possibleWords);
 }
 
-function printGrid(coordinatesWithLetters: CoordinatesWithLetters) {
+function printGrid(coordinatesWithLetters: readonly CoordinateWithLetters[]) {
   // Get the maximum bounds of the grid.
   let minX = Infinity;
   let maxX = -Infinity;
@@ -47,7 +46,7 @@ function printGrid(coordinatesWithLetters: CoordinatesWithLetters) {
   // Create a map for quick lookup.
   const gridMap = new Map<string, string>();
   for (const { coordinate, letters } of coordinatesWithLetters) {
-    gridMap.set(`${coordinate.x},${coordinate.y}`, letters.join(""));
+    gridMap.set(`${coordinate.x},${coordinate.y}`, letters);
   }
 
   // Build and output the grid.

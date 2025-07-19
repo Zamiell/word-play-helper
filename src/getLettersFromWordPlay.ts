@@ -11,16 +11,18 @@ interface Coordinate {
   y: number;
 }
 
-export type CoordinatesWithLetters = ReadonlyArray<{
+export interface CoordinateWithLetters {
   coordinate: Coordinate;
-  letters: readonly string[];
-}>;
+  letters: string;
+}
 
 const WORD_PLAY_EXE_NAME = "Word Play.exe";
 const IMAGES_DIR_NAME = "images";
 
 /** @returns Array of uppercase letters. */
-export async function getLettersFromWordPlay(): Promise<CoordinatesWithLetters> {
+export async function getLettersFromWordPlay(): Promise<
+  readonly CoordinateWithLetters[]
+> {
   const geminiAPIKey = process.env["GEMINI_API_KEY"];
   if (geminiAPIKey === undefined || geminiAPIKey === "") {
     throw new Error("Failed to read the environment variable: GEMINI_API_KEY");
@@ -153,14 +155,16 @@ function getValidSquareCoordinates(): readonly Coordinate[] {
   return coordinates;
 }
 
-/** @returns Array of lowercase letters. */
+/**
+ * @returns A string with the letters on the tile. Normally, this will be a single letter, but it
+ *          can also be e.g. "ers" for a special tile.
+ */
 async function getLettersFromImage(
   imagePath: string,
-  /// openAI: OpenAI,
   googleGenAI: GoogleGenAI,
   x: number,
   y: number,
-): Promise<readonly string[]> {
+): Promise<string> {
   const uploadResult = await googleGenAI.files.upload({
     file: imagePath,
   });
@@ -206,7 +210,7 @@ async function getLettersFromImage(
   }
 
   if (letters === "_") {
-    return [];
+    return "";
   }
 
   if (letters === "+") {
@@ -242,8 +246,7 @@ async function getLettersFromImage(
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-misused-spread
-  return [...letters];
+  return letters;
 }
 
 /*
