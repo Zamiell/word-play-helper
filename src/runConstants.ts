@@ -20,8 +20,8 @@ export const RUN_CONSTANTS = {
 
   // Modifiers (other)
   anythingCanStartWithRE: false as boolean,
-  extraTileSlot1: true as boolean,
-  extraTileSlot2: true as boolean,
+  extraTileSlot1: false as boolean,
+  extraTileSlot2: false as boolean,
   extraTileSlot3: false as boolean,
   sEqualsZ: false as boolean,
 
