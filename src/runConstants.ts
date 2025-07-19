@@ -8,19 +8,22 @@ export const RUN_CONSTANTS = {
   firstTile5xIfVowel: false as boolean,
   fiveTilesFirstAndLast3x: false as boolean,
   fourthTileScores3x: false as boolean,
+  ifFirstAndLastAreVowels: false as boolean,
   ifFirstLetterEqualsLastLetter: false as boolean,
   ifFirstLetterIs: undefined as string | undefined,
   ifFirstLetterIsVowel: false as boolean,
   ifSameLettersTogether: false as boolean,
   ifTwoAdjacentVowels: false as boolean,
-  ifWordEndsWithR: false as boolean,
+  ifWordEndsWithR: false as boolean, // +20 score
   longWordBooster: false as boolean,
   secondTileScores3x: false as boolean,
 
   // Modifiers (other)
-  extraTileSlot1: false as boolean,
-  extraTileSlot2: false as boolean,
+  anythingCanStartWithRE: false as boolean,
+  extraTileSlot1: true as boolean,
+  extraTileSlot2: true as boolean,
   extraTileSlot3: false as boolean,
+  sEqualsZ: false as boolean,
 
   // Special rounds
   specialRounds: {

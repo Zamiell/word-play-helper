@@ -1,11 +1,13 @@
 import { getElapsedSeconds } from "complete-common";
 import { readFileAsync } from "complete-node";
+import path from "node:path";
 import type { CoordinateWithLetters } from "./getLettersFromWordPlay.js";
 import { getLettersFromWordPlay } from "./getLettersFromWordPlay.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 import { getWordScore, hasRepeatingLetters } from "./score.js";
 
-const DICTIONARY_PATH = String.raw`D:\Games\PC\Word Play\1.04\ExportedProject\Assets\Resources\wordsfull.txt`;
+const REPO_ROOT = path.join(import.meta.dirname, "..");
+const DICTIONARY_PATH = path.join(REPO_ROOT, "data", "wordsfull.txt");
 
 await main();
 
@@ -16,10 +18,15 @@ async function main() {
   console.log(`(${elapsedSeconds}s)`);
   printGrid(coordinatesWithLetters);
 
+  let isSpecialRound = false;
   for (const [key, value] of Object.entries(RUN_CONSTANTS.specialRounds)) {
     if (value !== undefined && value !== false) {
-      console.log(`SPECIAL ROUND: ${key}`);
+      isSpecialRound = true;
+      console.log(`----- SPECIAL ROUND: ${key} -----`);
     }
+  }
+  if (isSpecialRound) {
+    console.log();
   }
 
   const availableLetters = coordinatesWithLetters.map(
@@ -109,7 +116,16 @@ async function getPossibleWords(
   const wordsFile = await readFileAsync(DICTIONARY_PATH);
   const words = wordsFile.split("\n");
 
-  const possibleWords = words.filter(
+  const allWords: string[] = [];
+  for (const word of words) {
+    allWords.push(word);
+
+    if (RUN_CONSTANTS.anythingCanStartWithRE) {
+      allWords.push(`RE${word}`);
+    }
+  }
+
+  const possibleWords = allWords.filter(
     (word) =>
       word !== ""
       && canMakeWordWithLetters(word, availableLetters, requiredSequences),
@@ -153,7 +169,7 @@ function canMakeWordWithLetters(
       // Use this sequence by removing it from the word.
       modifiedWord = modifiedWord.replace(sequence, "");
       unusedSequences.splice(i, 1);
-      i--; // Adjust index after removal
+      i--; // Adjust index after removal.
     }
   }
 
@@ -171,8 +187,32 @@ function canMakeWordWithLetters(
 
   const wordLetterCount = new Map<string, number>();
 
-  for (const letter of word.toLowerCase()) {
+  for (const letter of modifiedWord) {
     wordLetterCount.set(letter, (wordLetterCount.get(letter) ?? 0) + 1);
+  }
+
+  if (RUN_CONSTANTS.sEqualsZ) {
+    // Pool the available "s" and "z" tiles together.
+    const totalAvailableSZ =
+      (availableLetters.get("s") ?? 0) + (availableLetters.get("z") ?? 0);
+
+    // Pool the required "s" and "z" letters for the word.
+    const totalRequiredSZ =
+      (wordLetterCount.get("s") ?? 0) + (wordLetterCount.get("z") ?? 0);
+
+    // Check if the combined pool is sufficient.
+    if (totalAvailableSZ < totalRequiredSZ) {
+      const deficit = totalRequiredSZ - totalAvailableSZ;
+      wildcardsAvailable -= deficit;
+
+      if (wildcardsAvailable < 0) {
+        return false; // Not enough s, z, or wildcards.
+      }
+    }
+
+    // Remove "s" and "z" from the word count map so they are not checked again in the loop below.
+    wordLetterCount.delete("s");
+    wordLetterCount.delete("z");
   }
 
   for (const [letter, count] of wordLetterCount) {

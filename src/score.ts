@@ -1,4 +1,4 @@
-import { ReadonlyMap, sumArray } from "complete-common";
+import { assertDefined, ReadonlyMap, sumArray } from "complete-common";
 import { RUN_CONSTANTS } from "./runConstants.js";
 
 const LETTER_POINTS = new ReadonlyMap<string, number>([
@@ -42,6 +42,10 @@ export function getWordScore(word: string): {
   // eslint-disable-next-line @typescript-eslint/no-misused-spread
   const letters = [...word];
   const lowercaseLetters = letters.map((letter) => letter.toLowerCase());
+  const firstLetter = word.at(0);
+  assertDefined(firstLetter, `Failed to get the first letter of word: ${word}`);
+  const lastLetter = word.at(-1);
+  assertDefined(lastLetter, `Failed to get the last letter of word: ${word}`);
 
   const letterScores = lowercaseLetters.map((letter, i) =>
     getLetterScore(word, letter, i),
@@ -106,26 +110,32 @@ export function getWordScore(word: string): {
   if (RUN_CONSTANTS.if9Tiles && word.length === 9) {
     wordScorePreMultiplier += 10;
   }
-  if (RUN_CONSTANTS.ifWordBeginsWithH && lowercaseLetters.at(0) === "h") {
+  if (RUN_CONSTANTS.ifWordBeginsWithH && firstLetter === "h") {
     wordScorePreMultiplier += 20;
   }
-  if (RUN_CONSTANTS.ifWordEndsWithR && lowercaseLetters.at(-1) === "r") {
+  if (RUN_CONSTANTS.ifWordEndsWithR && lastLetter === "r") {
     wordScorePreMultiplier += 20;
   }
 
   // Multiplier
   let wordMultiplier = 1;
   if (
-    RUN_CONSTANTS.ifFirstLetterEqualsLastLetter
-    && lowercaseLetters.at(0) === lowercaseLetters.at(-1)
+    RUN_CONSTANTS.ifFirstAndLastAreVowels
+    && isVowel(firstLetter)
+    && isVowel(lastLetter)
   ) {
     wordMultiplier *= 2;
   }
-  if (RUN_CONSTANTS.ifFirstLetterIs?.toLowerCase() === lowercaseLetters.at(0)) {
+  if (
+    RUN_CONSTANTS.ifFirstLetterEqualsLastLetter
+    && firstLetter === lastLetter
+  ) {
     wordMultiplier *= 2;
   }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  if (RUN_CONSTANTS.ifFirstLetterIsVowel && isVowel(lowercaseLetters.at(0)!)) {
+  if (RUN_CONSTANTS.ifFirstLetterIs?.toLowerCase() === firstLetter) {
+    wordMultiplier *= 2;
+  }
+  if (RUN_CONSTANTS.ifFirstLetterIsVowel && isVowel(firstLetter)) {
     wordMultiplier *= 1.5;
   }
   if (RUN_CONSTANTS.ifSameLettersTogether && repeatingLetters) {
