@@ -70,10 +70,21 @@ function printGrid(coordinatesWithLetters: readonly CoordinateWithLetters[]) {
 async function getPossibleWords(
   unknownCaseLetters: readonly string[],
 ): Promise<readonly string[]> {
-  // Make a map of available letters.
-  const letters = unknownCaseLetters.map((letter) => letter.toLowerCase());
+  // Separate single letters from sequences.
+  const singleLetters: string[] = [];
+  const requiredSequences: string[] = [];
+
+  for (const item of unknownCaseLetters) {
+    if (item.length === 1) {
+      singleLetters.push(item.toLowerCase());
+    } else {
+      requiredSequences.push(item.toLowerCase());
+    }
+  }
+
+  // Make a map of available single letters only.
   const availableLetters = new Map<string, number>();
-  for (const letter of letters) {
+  for (const letter of singleLetters) {
     availableLetters.set(letter, (availableLetters.get(letter) ?? 0) + 1);
   }
 
@@ -99,7 +110,9 @@ async function getPossibleWords(
   const words = wordsFile.split("\n");
 
   const possibleWords = words.filter(
-    (word) => word !== "" && canMakeWordWithLetters(word, availableLetters),
+    (word) =>
+      word !== ""
+      && canMakeWordWithLetters(word, availableLetters, requiredSequences),
   );
 
   // Notifications
@@ -124,9 +137,27 @@ async function getPossibleWords(
 function canMakeWordWithLetters(
   word: string,
   availableLettersReadonly: ReadonlyMap<string, number>,
+  availableSequences: readonly string[] = [],
 ): boolean {
   const availableLetters = new Map(availableLettersReadonly);
+  const wordLower = word.toLowerCase();
 
+  // Try to use sequences to match parts of the word.
+  const unusedSequences = [...availableSequences];
+  let modifiedWord = wordLower;
+
+  for (let i = 0; i < unusedSequences.length; i++) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const sequence = unusedSequences[i]!;
+    if (modifiedWord.includes(sequence)) {
+      // Use this sequence by removing it from the word.
+      modifiedWord = modifiedWord.replace(sequence, "");
+      unusedSequences.splice(i, 1);
+      i--; // Adjust index after removal
+    }
+  }
+
+  // Now check if we can make the remaining letters.
   let wildcardsAvailable = availableLetters.get("*") ?? 0;
 
   if (RUN_CONSTANTS.specialRounds.firstTileIsLocked !== undefined) {
