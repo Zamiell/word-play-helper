@@ -11,7 +11,7 @@ export const RUN_CONSTANTS = {
   ifFirstAndLastAreVowels: false as boolean,
   ifFirstLetterEqualsLastLetter: false as boolean,
   ifFirstLetterIs: undefined as string | undefined,
-  ifFirstLetterIsVowel: false as boolean,
+  ifFirstLetterIsVowel: true as boolean,
   ifSameLettersTogether: false as boolean,
   ifTwoAdjacentVowels: false as boolean,
   ifWordEndsWithR: false as boolean, // +20 score

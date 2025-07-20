@@ -4,6 +4,7 @@ import { makeDirectoryAsync } from "complete-node";
 import { Jimp } from "jimp";
 import { Window } from "node-screenshots";
 import path from "node:path";
+import { env } from "./env.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 
 interface Coordinate {
@@ -23,12 +24,7 @@ const IMAGES_DIR_NAME = "images";
 export async function getLettersFromWordPlay(): Promise<
   readonly CoordinateWithLetters[]
 > {
-  const geminiAPIKey = process.env["GEMINI_API_KEY"];
-  if (geminiAPIKey === undefined || geminiAPIKey === "") {
-    throw new Error("Failed to read the environment variable: GEMINI_API_KEY");
-  }
-
-  const googleGenAI = new GoogleGenAI({ apiKey: geminiAPIKey });
+  const googleGenAI = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
   const wordPlayWindow = getWordPlayWindow();
   const capturedImage = await wordPlayWindow.captureImage();
