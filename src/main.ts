@@ -1,4 +1,4 @@
-import { assertDefined, getElapsedSeconds } from "complete-common";
+import { assertDefined } from "complete-common";
 import { readFileAsync } from "complete-node";
 import path from "node:path";
 import { CURRENT_LETTERS_PATH, NUMBER_WORDS } from "./constants.js";
@@ -14,11 +14,8 @@ await main();
 async function main() {
   clearLog();
 
-  const startTime = Date.now();
   const letters = await getLettersFromWordPlay();
-  console.log(letters);
-  const elapsedSeconds = getElapsedSeconds(startTime);
-  log(`(${elapsedSeconds}s)`);
+  log(`Letters: ${letters.join(", ")}\n`);
 
   let isSpecialRound = false;
   for (const [key, value] of Object.entries(RUN_CONSTANTS.specialRounds)) {
