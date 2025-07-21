@@ -262,11 +262,12 @@ function canMakeWordWithLetters(
     }
   }
 
-  if (
-    RUN_CONSTANTS.specialRounds.firstTileIsLocked !== undefined
-    && RUN_CONSTANTS.specialRounds.firstTileIsLocked !== word[0]?.toLowerCase()
-  ) {
-    return false;
+  if (RUN_CONSTANTS.specialRounds.firstTileIsLocked !== undefined) {
+    const firstLetter = wordLower[0];
+    assertDefined(firstLetter, "Failed to get the first letter of a word.");
+    if (RUN_CONSTANTS.specialRounds.firstTileIsLocked !== firstLetter) {
+      return false;
+    }
   }
 
   return true;
