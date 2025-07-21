@@ -31,8 +31,8 @@
 ### 4) Run the Analyzer
 
 - Install [Bun](https://bun.sh/).
-- Change the values in the "src/runConstants.ts" file to match your current run's modifiers.
-- `bun run start`
+- Change the values in the "src/runConstants.ts" file to match your current run's modifiers. (You will have to restart the script every time you need to change these values.)
+- Run the script: `bun run start`
 - The program will run forever, scanning for changes to the "current-letters.txt" file. It will output possible words to the "output.txt" file in the "word-play-helper" directory. (You can cancel the script with Ctrl + C.)
 
 ### 5) Set Up a Hotkey (Optional)
