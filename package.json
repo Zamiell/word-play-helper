@@ -26,8 +26,7 @@
   },
   "dependencies": {
     "complete-common": "2.4.0",
-    "complete-node": "7.4.3",
-    "zod": "^4.0.5"
+    "complete-node": "7.4.3"
   },
   "devDependencies": {
     "complete-cli": "1.2.2",

@@ -23,13 +23,11 @@
     // @template-customization-start
     "output.txt",
     "wordsfull.txt",
-    "wordsfull-re.txt",
     // @template-customization-end
   ],
   "words": [
     "dbaeumer",
     "esbenp",
-    "genai",
     "netstandard",
     "Randomise",
     "sarisia",
