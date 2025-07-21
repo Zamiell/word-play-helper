@@ -52,12 +52,6 @@ You can use [AutoHotkey](https://www.autohotkey.com/) to set up a hotkey to run 
 
   ; Ctrl + 2
   ^2:: {
-    Run("bun run C:\Repositories\word-play-helper\src\main.ts", , "Hide")
-    WinActivate("ahk_exe Code.exe")
-  }
-
-  ; Ctrl + 3
-  ^3:: {
     Click(2) ; To highlight the word.
     Send("{Ctrl down}c{Ctrl up}")
     Sleep(25)
