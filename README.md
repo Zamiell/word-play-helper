@@ -37,7 +37,7 @@
 
 ### 5) Set Up a Hotkey (Optional)
 
-You can use [AutoHotkey](https://www.autohotkey.com/) to set up a hotkey to run this script and/or automatically enter a word. For example:
+You can use [AutoHotkey](https://www.autohotkey.com/) to set up a hotkey to automatically enter the word that your cursor is over. For example:
 
 ```ahk
 ; ---------
@@ -45,11 +45,6 @@ You can use [AutoHotkey](https://www.autohotkey.com/) to set up a hotkey to run 
 ; ---------
 
 #HotIf WinExist("ahk_exe Word Play.exe")
-  ; Ctrl + 1
-  ^1:: {
-    WinActivate("ahk_exe Word Play.exe")
-  }
-
   ; Ctrl + 2
   ^2:: {
     Click(2) ; To highlight the word.
