@@ -36,3 +36,41 @@
 - Open "output.txt" in the text editor of your choice. (The output is also written to standard out.)
 
 You need to re-run the program each time you want to analyze a board.
+
+### 5) Set Up a Hotkey (Optional)
+
+You can use [AutoHotkey](https://www.autohotkey.com/) to set up a hotkey to run this script and/or automatically enter a word. For example:
+
+```ahk
+; ---------
+; WORD PLAY
+; ---------
+
+#HotIf WinExist("ahk_exe Word Play.exe")
+  ; Ctrl + 1
+  ^1:: {
+    WinActivate("ahk_exe Word Play.exe")
+  }
+
+  ; Ctrl + 2
+  ^2:: {
+    Run("bun run C:\Repositories\word-play-helper\src\main.ts", , "Hide")
+    WinActivate("ahk_exe Code.exe")
+  }
+
+  ; Ctrl + 3
+  ^3:: {
+    Click(2) ; To highlight the word.
+    Send("{Ctrl down}c{Ctrl up}")
+    Sleep(25)
+    WinActivate("ahk_exe Word Play.exe")
+    WinWaitActive("ahk_exe Word Play.exe")
+    Sleep(25)
+    text := A_Clipboard
+    Loop Parse, text {
+      SendText(A_LoopField)
+      Sleep(25)
+    }
+  }
+#HotIf
+```
