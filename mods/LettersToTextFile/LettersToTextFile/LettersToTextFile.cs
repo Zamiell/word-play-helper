@@ -3,7 +3,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 namespace LettersToTextFile
@@ -38,6 +37,9 @@ namespace LettersToTextFile
         class LetterBagManager_Patches
         {
             [HarmonyPostfix]
+            // Since we cannot attach an observer to the list, we fire a letter check after every
+            // method that mutates the "LettersInPlay" list in any way (as determined from reading
+            // the source code in dnSpy).
             [HarmonyPatch("LoadLetterBag")]
             [HarmonyPatch("UseNormalBag")]
             [HarmonyPatch("SetUpLetterBag")]
