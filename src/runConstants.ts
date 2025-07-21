@@ -4,7 +4,7 @@ export const RUN_CONSTANTS = {
   ifWordBeginsWithScore: undefined as string | undefined,
 
   // Modifiers (multipliers)
-  finalScoreX: "e" as string | undefined,
+  finalScoreX: undefined as string | undefined,
   firstTile5xIfVowel: false as boolean,
   fiveTilesFirstAndLast3x: false as boolean,
   fourthTileScores3x: false as boolean,
@@ -13,9 +13,9 @@ export const RUN_CONSTANTS = {
   ifFirstLetterIs: undefined as string | undefined,
   ifFirstLetterIsVowel: false as boolean,
   ifSameLettersTogether: false as boolean,
-  ifTwoAdjacentVowels: true as boolean,
+  ifTwoAdjacentVowels: false as boolean,
   ifVowelsGreaterThanConsonants: false as boolean,
-  ifWordBeginsWithX2: "i" as string | undefined,
+  ifWordBeginsWithX2: undefined as string | undefined,
   ifWordEndsWithR: false as boolean, // +20 score
   ifWordHasNo: undefined as string | undefined,
   longWordBooster: false as boolean,

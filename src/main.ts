@@ -4,7 +4,7 @@ import path from "node:path";
 import { CURRENT_LETTERS_PATH, NUMBER_WORDS } from "./constants.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 import { getWordScore, hasRepeatingLetters } from "./score.js";
-import { log } from "./utils.js";
+import { clearLog, log } from "./utils.js";
 
 const REPO_ROOT = path.join(import.meta.dirname, "..");
 const DICTIONARY_PATH = path.join(REPO_ROOT, "data", "wordsfull.txt");
@@ -12,6 +12,8 @@ const DICTIONARY_PATH = path.join(REPO_ROOT, "data", "wordsfull.txt");
 await main();
 
 async function main() {
+  clearLog();
+
   const startTime = Date.now();
   const letters = await getLettersFromWordPlay();
   console.log(letters);
