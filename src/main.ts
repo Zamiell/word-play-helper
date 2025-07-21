@@ -1,20 +1,49 @@
-import { assertDefined } from "complete-common";
-import { readFileAsync } from "complete-node";
-import path from "node:path";
-import { CURRENT_LETTERS_PATH, NUMBER_WORDS } from "./constants.js";
+import { arrayRemoveAllInPlace, assertDefined } from "complete-common";
+import { readFileAsync, touchAsync } from "complete-node";
+import fs from "node:fs";
+import {
+  CURRENT_LETTERS_PATH,
+  DICTIONARY_PATH,
+  NUMBER_WORDS,
+} from "./constants.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 import { getWordScore, hasRepeatingLetters } from "./score.js";
-import { clearLog, log } from "./utils.js";
+import { clearLog, log, writeLog } from "./utils.js";
 
-const REPO_ROOT = path.join(import.meta.dirname, "..");
-const DICTIONARY_PATH = path.join(REPO_ROOT, "data", "wordsfull.txt");
+let currentLetters = "";
 
 await main();
 
 async function main() {
+  process.on("SIGINT", () => {
+    watcher.close();
+    process.exit();
+  });
+
+  console.log(`Watching for changes on file: ${CURRENT_LETTERS_PATH}`);
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  const watcher = fs.watch(CURRENT_LETTERS_PATH, onCurrentLettersFileChanged);
+
+  await touchAsync(CURRENT_LETTERS_PATH);
+}
+
+async function onCurrentLettersFileChanged() {
+  const newCurrentLetters = await readFileAsync(CURRENT_LETTERS_PATH);
+  if (newCurrentLetters === "" || newCurrentLetters === currentLetters) {
+    return;
+  }
+  currentLetters = newCurrentLetters;
+  await onLettersChanged();
+}
+
+async function onLettersChanged() {
   clearLog();
 
-  const letters = await getLettersFromWordPlay();
+  const unsortedLetters = parseCurrentLetters();
+  const letters = unsortedLetters.toSorted();
+  if (RUN_CONSTANTS.disableAsterisks) {
+    arrayRemoveAllInPlace(letters, "*");
+  }
   log(`Letters: ${letters.join(", ")}\n`);
 
   let isSpecialRound = false;
@@ -29,23 +58,41 @@ async function main() {
   }
 
   const possibleWords = await getPossibleWords(letters);
-  printSortedWords(possibleWords);
+  logSortedWords(possibleWords);
+
+  await writeLog();
 }
 
-export async function getLettersFromWordPlay(): Promise<readonly string[]> {
-  const currentLetters = await readFileAsync(CURRENT_LETTERS_PATH);
+/**
+ * An current letters string is like:
+ *
+ * ```text
+ * TS0000
+ * IG0000
+ * AS0000
+ * RS0000
+ * RS0000
+ * IS0000
+ * AS0000
+ * RS0000
+ * ES0000
+ * WS0000
+ * OS0000
+ * VS0000
+ * AS0000
+ * WS0000
+ * IS0000
+ * IS0000
+ * ```
+ */
+function parseCurrentLetters(): readonly string[] {
   const letters = currentLetters.split("\n");
-
-  // Each letter is like:
-  // - AS0000
-  // - BS0000
-  // - CS0000
 
   return letters.map((letter) => {
     const firstCharacter = letter[0];
     assertDefined(
       firstCharacter,
-      `Failed to get the first character of a letter from: ${CURRENT_LETTERS_PATH}`,
+      `Failed to get the first character of a letter from: ${currentLetters}`,
     );
 
     return firstCharacter;
@@ -225,7 +272,7 @@ function canMakeWordWithLetters(
   return true;
 }
 
-function printSortedWords(words: readonly string[]) {
+function logSortedWords(words: readonly string[]) {
   // Word Play only accepts words of length 4 or longer.
   const bigWords = words.filter((word) => word.length >= 4);
 
@@ -247,14 +294,14 @@ function printSortedWords(words: readonly string[]) {
 
   for (const { word, score } of sorted) {
     const paddedWord = word.padEnd(maxWordLength);
-    const suffix = getPrintSuffix(word);
+    const suffix = getLineSuffix(word);
     log(
-      `- ${paddedWord} - ${score.wordScore} (${word.length}) [${score.letterScores}] ${score.wordScorePreMultiplier}x${score.wordMultiplier}${suffix}`,
+      `- ${paddedWord} - ${score.wordScore} (${word.length}) [${score.letterScores}] ${score.wordScorePreMultiplier}*${score.wordMultiplier}${suffix}`,
     );
   }
 }
 
-function getPrintSuffix(word: string) {
+function getLineSuffix(word: string) {
   let suffix = "";
 
   const repeatingLetters = hasRepeatingLetters(word);

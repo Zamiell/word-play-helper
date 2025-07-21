@@ -25,7 +25,7 @@
     "update": "complete-cli update"
   },
   "dependencies": {
-    "complete-common": "2.4.0",
+    "complete-common": "2.5.0",
     "complete-node": "7.4.3"
   },
   "devDependencies": {

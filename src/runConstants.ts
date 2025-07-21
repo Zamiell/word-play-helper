@@ -1,25 +1,26 @@
 export const RUN_CONSTANTS = {
   // Modifiers (score)
-  if9Tiles: false as boolean,
-  ifWordBeginsWithScore: undefined as string | undefined,
+  if9Tiles: false as boolean, // +10
+  ifWordBeginsWithScore: undefined as string | undefined, // +20
+  ifWordEndsWith: undefined as string | undefined, // +20
+  longWordBooster: false as boolean,
 
   // Modifiers (multipliers)
   finalScoreX: undefined as string | undefined,
-  firstTile5xIfVowel: false as boolean,
-  fiveTilesFirstAndLast3x: false as boolean,
-  fourthTileScores3x: false as boolean,
-  ifFirstAndLastAreVowels: false as boolean,
-  ifFirstLetterEqualsLastLetter: false as boolean,
-  ifFirstLetterIs: undefined as string | undefined,
-  ifFirstLetterIsVowel: false as boolean,
-  ifSameLettersTogether: false as boolean,
-  ifTwoAdjacentVowels: false as boolean,
-  ifVowelsGreaterThanConsonants: false as boolean,
-  ifWordBeginsWithX2: undefined as string | undefined,
-  ifWordEndsWith: undefined as string | undefined, // +20 score
-  ifWordHasNo: undefined as string | undefined,
-  longWordBooster: false as boolean,
-  secondTileScores3x: false as boolean,
+  firstTile5xIfVowel: false as boolean, // 5x
+  fiveTilesFirstAndLast3x: false as boolean, // 3x
+  fourthTileScores3x: false as boolean, // 3x
+  ifEveryLetterIsUnique: true as boolean, // 1.5x
+  ifFirstAndLastAreVowels: false as boolean, // 2x
+  ifFirstLetterEqualsLastLetter: false as boolean, // 2x
+  ifFirstLetterIs: undefined as string | undefined, // 2x
+  ifFirstLetterIsVowel: false as boolean, // 1.5x
+  ifSameLettersTogether: true as boolean, // 1.5x
+  ifTwoAdjacentVowels: false as boolean, // 1.5x
+  ifVowelsGreaterThanConsonants: false as boolean, // 2x
+  ifWordBeginsWithX2: undefined as string | undefined, // 2x
+  ifWordHasNo: undefined as string | undefined, // 2x
+  secondTileScores3x: false as boolean, // 3x
 
   // Modifiers (other)
   anythingCanStartWithRE: false as boolean,
@@ -40,4 +41,7 @@ export const RUN_CONSTANTS = {
   increaseIfContainsNumber: false as boolean,
   startsWith: undefined as string | undefined,
   threeXSameLetter: false as boolean,
+
+  // Other
+  disableAsterisks: false as boolean,
 } as const;

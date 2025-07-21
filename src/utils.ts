@@ -1,14 +1,16 @@
-import { appendFile, writeFile } from "complete-node";
-import path from "node:path";
+import { writeFileAsync } from "complete-node";
+import { OUTPUT_PATH } from "./constants.js";
 
-const REPO_ROOT = path.join(import.meta.dirname, "..");
-const OUTPUT_PATH = path.join(REPO_ROOT, "output.txt");
+let fileContents = "";
 
 export function log(msg: string): void {
-  console.log(msg);
-  appendFile(OUTPUT_PATH, `${msg}\n`);
+  fileContents += `${msg}\n`;
 }
 
 export function clearLog(): void {
-  writeFile(OUTPUT_PATH, "");
+  fileContents = "";
+}
+
+export async function writeLog(): Promise<void> {
+  await writeFileAsync(OUTPUT_PATH, `${fileContents}\n`);
 }

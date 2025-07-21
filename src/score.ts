@@ -91,6 +91,12 @@ export function getWordScore(word: string): {
 
   // Multiplier
   let wordMultiplier = 1;
+  if (RUN_CONSTANTS.ifEveryLetterIsUnique) {
+    const set = new Set(lowercaseLetters);
+    if (set.size === lowercaseLetters.length) {
+      wordMultiplier *= 1.5;
+    }
+  }
   if (
     RUN_CONSTANTS.ifFirstAndLastAreVowels
     && isVowel(firstLetter)

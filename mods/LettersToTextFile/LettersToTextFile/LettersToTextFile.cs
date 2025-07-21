@@ -15,6 +15,8 @@ namespace LettersToTextFile
         private const string modName = "LettersToTextFile";
         private const string modVersion = "1.0.0";
 
+        private static string previousLetters = "";
+
         private readonly Harmony harmony = new Harmony(modGUID);
         internal static ManualLogSource ModLogger;
 
@@ -56,12 +58,18 @@ namespace LettersToTextFile
             [HarmonyPatch("ChangeAllToType")]
             public static void UniversalPostfix(MethodBase __originalMethod)
             {
+                string currentLetters = string.Join("\n", LetterBagManager.Instance.LettersInPlay);
+                if (currentLetters == previousLetters)
+                {
+                    return;
+                }
+                previousLetters = currentLetters;
+
                 string filePath = @"D:\SteamLibrary\steamapps\common\Word Play\current-letters.txt";
-                string letters = string.Join("\n", LetterBagManager.Instance.LettersInPlay);
 
                 try
                 {
-                    File.WriteAllText(filePath, letters);
+                    File.WriteAllText(filePath, currentLetters);
                 }
                 catch (Exception ex)
                 {
