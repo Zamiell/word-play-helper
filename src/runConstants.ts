@@ -16,7 +16,7 @@ export const RUN_CONSTANTS = {
   ifTwoAdjacentVowels: false as boolean,
   ifVowelsGreaterThanConsonants: false as boolean,
   ifWordBeginsWithX2: undefined as string | undefined,
-  ifWordEndsWithR: false as boolean, // +20 score
+  ifWordEndsWith: undefined as string | undefined, // +20 score
   ifWordHasNo: undefined as string | undefined,
   longWordBooster: false as boolean,
   secondTileScores3x: false as boolean,

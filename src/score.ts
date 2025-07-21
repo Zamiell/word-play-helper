@@ -85,7 +85,7 @@ export function getWordScore(word: string): {
   if (firstLetter === RUN_CONSTANTS.ifWordBeginsWithScore) {
     wordScorePreMultiplier += 20;
   }
-  if (RUN_CONSTANTS.ifWordEndsWithR && lastLetter === "r") {
+  if (lastLetter === RUN_CONSTANTS.ifWordEndsWith) {
     wordScorePreMultiplier += 20;
   }
 
