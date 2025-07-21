@@ -11,7 +11,7 @@
   - BepInEx (directory)
   - doorstop_config.ini
   - winhttp.dll
-- Copy these 3 things to your Word Play installation folder. (By default, this is "C:\Program Files (x86)\Steam\steamapps\common\Word Play".)
+- Copy these 3 files/directories to your Word Play installation folder. (By default, this is "C:\Program Files (x86)\Steam\steamapps\common\Word Play".)
 - Launch Word Play. Now, with BepInEx properly installed, you should have a separate console window that contains log output.
 
 ### 2) Clone the Repo
