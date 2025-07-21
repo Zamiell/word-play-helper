@@ -64,7 +64,7 @@ async function onLettersChanged() {
 }
 
 /**
- * An current letters string is like:
+ * A current letters string is like:
  *
  * ```text
  * TS0000
