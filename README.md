@@ -33,9 +33,7 @@
 - Install [Bun](https://bun.sh/).
 - Change the values in the "src/runConstants.ts" file to match your current run's modifiers.
 - `bun run start`
-- Open "output.txt" in the text editor of your choice. (The output is also written to standard out.)
-
-You need to re-run the program each time you want to analyze a board.
+- The program will run forever, scanning for changes to the "current-letters.txt" file. It will output possible words to the "output.txt" file in the "word-play-helper" directory. (You can cancel the script with Ctrl + C.)
 
 ### 5) Set Up a Hotkey (Optional)
 

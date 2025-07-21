@@ -10,12 +10,12 @@ export const RUN_CONSTANTS = {
   firstTile5xIfVowel: false as boolean, // 5x
   fiveTilesFirstAndLast3x: false as boolean, // 3x
   fourthTileScores3x: false as boolean, // 3x
-  ifEveryLetterIsUnique: true as boolean, // 1.5x
+  ifEveryLetterIsUnique: false as boolean, // 1.5x
   ifFirstAndLastAreVowels: false as boolean, // 2x
   ifFirstLetterEqualsLastLetter: false as boolean, // 2x
   ifFirstLetterIs: undefined as string | undefined, // 2x
   ifFirstLetterIsVowel: false as boolean, // 1.5x
-  ifSameLettersTogether: true as boolean, // 1.5x
+  ifSameLettersTogether: false as boolean, // 1.5x
   ifTwoAdjacentVowels: false as boolean, // 1.5x
   ifVowelsGreaterThanConsonants: false as boolean, // 2x
   ifWordBeginsWithX2: undefined as string | undefined, // 2x
