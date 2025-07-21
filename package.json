@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "lint": "bun run ./scripts/lint.ts",
-    "start": "bun run ./src/main.ts",
+    "start": "bun run --watch ./src/main.ts",
     "update": "complete-cli update"
   },
   "dependencies": {
