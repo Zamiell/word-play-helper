@@ -25,11 +25,8 @@
     "update": "complete-cli update"
   },
   "dependencies": {
-    "@google/genai": "^1.10.0",
     "complete-common": "2.4.0",
-    "complete-node": "7.4.2",
-    "jimp": "^1.6.0",
-    "node-screenshots": "^0.2.1",
+    "complete-node": "7.4.3",
     "zod": "^4.0.5"
   },
   "devDependencies": {

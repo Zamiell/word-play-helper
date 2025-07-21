@@ -1,34 +1,6 @@
-import { assertDefined, ReadonlyMap, sumArray } from "complete-common";
+import { assertDefined, sumArray } from "complete-common";
+import { LETTER_POINTS } from "./constants.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
-
-const LETTER_POINTS = new ReadonlyMap<string, number>([
-  ["a", 1],
-  ["b", 3],
-  ["c", 3],
-  ["d", 2],
-  ["e", 1],
-  ["f", 4],
-  ["g", 2],
-  ["h", 4],
-  ["i", 1],
-  ["j", 8],
-  ["k", 5],
-  ["l", 1],
-  ["m", 3],
-  ["n", 1],
-  ["o", 1],
-  ["p", 3],
-  ["q", 10],
-  ["r", 1],
-  ["s", 1],
-  ["t", 1],
-  ["u", 1],
-  ["v", 4],
-  ["w", 4],
-  ["x", 8],
-  ["y", 4],
-  ["z", 10],
-]);
 
 export function getWordScore(word: string): {
   wordScore: number;
@@ -42,9 +14,9 @@ export function getWordScore(word: string): {
   // eslint-disable-next-line @typescript-eslint/no-misused-spread
   const letters = [...word];
   const lowercaseLetters = letters.map((letter) => letter.toLowerCase());
-  const firstLetter = word.at(0);
+  const firstLetter = lowercaseLetters.at(0);
   assertDefined(firstLetter, `Failed to get the first letter of word: ${word}`);
-  const lastLetter = word.at(-1);
+  const lastLetter = lowercaseLetters.at(-1);
   assertDefined(lastLetter, `Failed to get the last letter of word: ${word}`);
 
   const letterScores = lowercaseLetters.map((letter, i) =>
@@ -110,7 +82,7 @@ export function getWordScore(word: string): {
   if (RUN_CONSTANTS.if9Tiles && word.length === 9) {
     wordScorePreMultiplier += 10;
   }
-  if (RUN_CONSTANTS.ifWordBeginsWithH && firstLetter === "h") {
+  if (firstLetter === RUN_CONSTANTS.ifWordBeginsWithScore) {
     wordScorePreMultiplier += 20;
   }
   if (RUN_CONSTANTS.ifWordEndsWithR && lastLetter === "r") {
@@ -140,6 +112,23 @@ export function getWordScore(word: string): {
   }
   if (RUN_CONSTANTS.ifSameLettersTogether && repeatingLetters) {
     wordMultiplier *= 1.5;
+  }
+  if (RUN_CONSTANTS.ifVowelsGreaterThanConsonants) {
+    const vowels = lowercaseLetters.filter((letter) => isVowel(letter));
+    const numVowels = vowels.length;
+    const numConsonants = lowercaseLetters.length - numVowels;
+    if (numVowels > numConsonants) {
+      wordMultiplier *= 2;
+    }
+  }
+  if (firstLetter === RUN_CONSTANTS.ifWordBeginsWithX2) {
+    wordMultiplier *= 2;
+  }
+  if (
+    RUN_CONSTANTS.ifWordHasNo !== undefined
+    && !lowercaseLetters.includes(RUN_CONSTANTS.ifWordHasNo)
+  ) {
+    wordMultiplier *= 2;
   }
 
   if (RUN_CONSTANTS.finalScoreX !== undefined) {

@@ -1,10 +1,10 @@
-import { getElapsedSeconds } from "complete-common";
+import { assertDefined, getElapsedSeconds } from "complete-common";
 import { readFileAsync } from "complete-node";
 import path from "node:path";
-import type { CoordinateWithLetters } from "./getLettersFromWordPlay.js";
-import { getLettersFromWordPlay } from "./getLettersFromWordPlay.js";
+import { CURRENT_LETTERS_PATH, NUMBER_WORDS } from "./constants.js";
 import { RUN_CONSTANTS } from "./runConstants.js";
 import { getWordScore, hasRepeatingLetters } from "./score.js";
+import { log } from "./utils.js";
 
 const REPO_ROOT = path.join(import.meta.dirname, "..");
 const DICTIONARY_PATH = path.join(REPO_ROOT, "data", "wordsfull.txt");
@@ -13,65 +13,44 @@ await main();
 
 async function main() {
   const startTime = Date.now();
-  const coordinatesWithLetters = await getLettersFromWordPlay();
+  const letters = await getLettersFromWordPlay();
+  console.log(letters);
   const elapsedSeconds = getElapsedSeconds(startTime);
-  console.log(`(${elapsedSeconds}s)`);
-  printGrid(coordinatesWithLetters);
+  log(`(${elapsedSeconds}s)`);
 
   let isSpecialRound = false;
   for (const [key, value] of Object.entries(RUN_CONSTANTS.specialRounds)) {
     if (value !== undefined && value !== false) {
       isSpecialRound = true;
-      console.log(`----- SPECIAL ROUND: ${key} -----`);
+      log(`----- SPECIAL ROUND: ${key} -----`);
     }
   }
   if (isSpecialRound) {
-    console.log();
+    log("");
   }
 
-  const availableLetters = coordinatesWithLetters.map(
-    (coordinateWithLetters) => coordinateWithLetters.letters,
-  );
-
-  const possibleWords = await getPossibleWords(availableLetters);
+  const possibleWords = await getPossibleWords(letters);
   printSortedWords(possibleWords);
 }
 
-function printGrid(coordinatesWithLetters: readonly CoordinateWithLetters[]) {
-  // Get the maximum bounds of the grid.
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (const { coordinate } of coordinatesWithLetters) {
-    minX = Math.min(minX, coordinate.x);
-    maxX = Math.max(maxX, coordinate.x);
-    minY = Math.min(minY, coordinate.y);
-    maxY = Math.max(maxY, coordinate.y);
-  }
+export async function getLettersFromWordPlay(): Promise<readonly string[]> {
+  const currentLetters = await readFileAsync(CURRENT_LETTERS_PATH);
+  const letters = currentLetters.split("\n");
 
-  // Create a map for quick lookup.
-  const gridMap = new Map<string, string>();
-  for (const { coordinate, letters } of coordinatesWithLetters) {
-    gridMap.set(`${coordinate.x},${coordinate.y}`, letters);
-  }
+  // Each letter is like:
+  // - AS0000
+  // - BS0000
+  // - CS0000
 
-  // Build and output the grid.
-  console.log();
-  for (let y = minY; y <= maxY; y++) {
-    let row = "";
-    for (let x = minX; x <= maxX; x++) {
-      const letters = gridMap.get(`${x},${y}`);
-      // eslint-disable-next-line unicorn/prefer-ternary
-      if (letters !== undefined && letters !== "") {
-        row += `${letters} `;
-      } else {
-        row += "  "; // Two spaces for empty coordinate
-      }
-    }
-    console.log(row.trimEnd());
-  }
-  console.log();
+  return letters.map((letter) => {
+    const firstCharacter = letter[0];
+    assertDefined(
+      firstCharacter,
+      `Failed to get the first character of a letter from: ${CURRENT_LETTERS_PATH}`,
+    );
+
+    return firstCharacter;
+  });
 }
 
 async function getPossibleWords(
@@ -99,14 +78,14 @@ async function getPossibleWords(
   if (RUN_CONSTANTS.has2OrMore !== undefined) {
     for (const [letter, count] of availableLetters) {
       if (letter === RUN_CONSTANTS.has2OrMore && count >= 2) {
-        console.log(`(2+ "${letter}" detected)`);
+        log(`(2+ "${letter}" detected)`);
       }
     }
   }
   if (RUN_CONSTANTS.threeXSameLetter) {
     for (const [letter, count] of availableLetters) {
       if (count >= 3) {
-        console.log(`(3+ "${letter}" detected)`);
+        log(`(3+ "${letter}" detected)`);
       }
     }
   }
@@ -137,13 +116,23 @@ async function getPossibleWords(
     if (
       possibleWords.some((word) => word.toLowerCase().includes(letterSequence))
     ) {
-      console.log(`(words that contain "${letterSequence}" detected)`);
+      log(`(words that contain "${letterSequence}" detected)`);
+    }
+  }
+  if (RUN_CONSTANTS.increaseIfContainsNumber) {
+    for (let i = 20; i >= 1; i--) {
+      const numberWord = NUMBER_WORDS[i as never];
+      if (
+        possibleWords.some((word) => word.toLowerCase().includes(numberWord))
+      ) {
+        log(`(found number word: ${numberWord})`);
+      }
     }
   }
   if (RUN_CONSTANTS.startsWith !== undefined) {
     const prefix = RUN_CONSTANTS.startsWith;
     if (possibleWords.some((word) => word.toLowerCase().startsWith(prefix))) {
-      console.log(`(words that start with "${prefix}" detected)`);
+      log(`(words that start with "${prefix}" detected)`);
     }
   }
 
@@ -242,7 +231,7 @@ function printSortedWords(words: readonly string[]) {
   const bigWords = words.filter((word) => word.length >= 4);
 
   if (bigWords.length === 0) {
-    console.log("No found combinations found!");
+    log("No found combinations found!");
     return;
   }
 
@@ -260,7 +249,7 @@ function printSortedWords(words: readonly string[]) {
   for (const { word, score } of sorted) {
     const paddedWord = word.padEnd(maxWordLength);
     const suffix = getPrintSuffix(word);
-    console.log(
+    log(
       `- ${paddedWord} - ${score.wordScore} (${word.length}) [${score.letterScores}] ${score.wordScorePreMultiplier}x${score.wordMultiplier}${suffix}`,
     );
   }

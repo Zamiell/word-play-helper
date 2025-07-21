@@ -1,10 +1,10 @@
 export const RUN_CONSTANTS = {
   // Modifiers (score)
   if9Tiles: false as boolean,
-  ifWordBeginsWithH: false as boolean,
+  ifWordBeginsWithScore: undefined as string | undefined,
 
   // Modifiers (multipliers)
-  finalScoreX: undefined as string | undefined,
+  finalScoreX: "e" as string | undefined,
   firstTile5xIfVowel: false as boolean,
   fiveTilesFirstAndLast3x: false as boolean,
   fourthTileScores3x: false as boolean,
@@ -13,8 +13,11 @@ export const RUN_CONSTANTS = {
   ifFirstLetterIs: undefined as string | undefined,
   ifFirstLetterIsVowel: false as boolean,
   ifSameLettersTogether: false as boolean,
-  ifTwoAdjacentVowels: false as boolean,
+  ifTwoAdjacentVowels: true as boolean,
+  ifVowelsGreaterThanConsonants: false as boolean,
+  ifWordBeginsWithX2: "i" as string | undefined,
   ifWordEndsWithR: false as boolean, // +20 score
+  ifWordHasNo: undefined as string | undefined,
   longWordBooster: false as boolean,
   secondTileScores3x: false as boolean,
 
@@ -34,6 +37,7 @@ export const RUN_CONSTANTS = {
   // Notifiers
   containsSequence: undefined as string | undefined,
   has2OrMore: undefined as string | undefined,
+  increaseIfContainsNumber: false as boolean,
   startsWith: undefined as string | undefined,
   threeXSameLetter: false as boolean,
 } as const;

@@ -26,5 +26,16 @@
     "wordsfull-re.txt",
     // @template-customization-end
   ],
-  "words": ["dbaeumer", "esbenp", "genai", "sarisia", "wordsfull", "Zamiell"],
+  "words": [
+    "dbaeumer",
+    "esbenp",
+    "genai",
+    "netstandard",
+    "Randomise",
+    "sarisia",
+    "steamapps",
+    "wordsfull",
+    "xcopy",
+    "Zamiell",
+  ],
 }
