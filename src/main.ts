@@ -38,17 +38,21 @@ async function onCurrentLettersFileChanged() {
 
 async function onLettersChanged() {
   clearLog();
+  log(`=== Generated at: ${new Date().toISOString()} ===`);
 
-  const unsortedLetters = parseCurrentLetters();
-  const letters = unsortedLetters.toSorted();
+  const rawLetters = parseCurrentLetters();
+  const adjustedLetters = [...rawLetters];
   if (RUN_CONSTANTS.disableAsterisks) {
-    arrayRemoveAllInPlace(letters, "*");
+    arrayRemoveAllInPlace(adjustedLetters, "*");
   }
-  log(`Letters: ${letters.join(", ")}\n`);
+
+  log(`Letters: ${adjustedLetters.join(", ")}`);
+  const letters = adjustedLetters.toSorted();
+  log(`Sorted letters: ${letters.join(", ")}\n`);
 
   let isSpecialRound = false;
   for (const [key, value] of Object.entries(RUN_CONSTANTS.specialRounds)) {
-    if (value !== undefined && value !== false) {
+    if (value !== undefined) {
       isSpecialRound = true;
       log(`----- SPECIAL ROUND: ${key} -----`);
     }
@@ -88,7 +92,15 @@ async function onLettersChanged() {
 function parseCurrentLetters(): readonly string[] {
   const letters = currentLetters.split("\n");
 
-  return letters.map((letter) => {
+  const nonLockedLetters = letters.filter(
+    (letter) =>
+      !letter.endsWith("64")
+      && !letter.endsWith("63")
+      && !letter.endsWith("62")
+      && !letter.endsWith("61"),
+  );
+
+  return nonLockedLetters.map((letter) => {
     const firstCharacter = letter[0];
     assertDefined(
       firstCharacter,

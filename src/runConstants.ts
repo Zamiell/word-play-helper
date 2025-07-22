@@ -24,15 +24,11 @@ export const RUN_CONSTANTS = {
 
   // Modifiers (other)
   anythingCanStartWithRE: false as boolean,
-  extraTileSlot1: false as boolean,
-  extraTileSlot2: false as boolean,
-  extraTileSlot3: false as boolean,
   sEqualsZ: false as boolean,
 
   // Special rounds
   specialRounds: {
     firstTileIsLocked: undefined as string | undefined,
-    top4TilesAreLocked: false as boolean,
   },
 
   // Notifiers

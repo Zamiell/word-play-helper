@@ -12,5 +12,5 @@ export function clearLog(): void {
 }
 
 export async function writeLog(): Promise<void> {
-  await writeFileAsync(OUTPUT_PATH, `${fileContents}\n`);
+  await writeFileAsync(OUTPUT_PATH, fileContents);
 }
